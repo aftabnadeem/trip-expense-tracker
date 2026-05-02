@@ -3,34 +3,22 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function AuthPage() {
-  const [email, setEmail]     = useState('');
-  const [sent, setSent]       = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState(null);
 
   const handleLogin = async () => {
-    if (!email.trim()) return;
+    if (!email.trim() || !password) return;
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.origin },
+      password,
     });
     if (error) setError(error.message);
-    else setSent(true);
     setLoading(false);
   };
-
-  if (sent) return (
-    <div className="auth-wrap">
-      <div className="auth-card">
-        <div className="auth-icon">📬</div>
-        <h2>Check your email</h2>
-        <p>We sent a magic link to <strong>{email}</strong>.<br />Click it to sign in — no password needed.</p>
-        <button className="btn-outline" onClick={() => setSent(false)}>Use a different email</button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="auth-wrap">
@@ -40,7 +28,7 @@ export default function AuthPage() {
         <p className="auth-subtitle">Track group trip expenses together</p>
 
         <div className="form-col" style={{ marginBottom: 10 }}>
-          <label>Your email</label>
+          <label>Email</label>
           <input
             type="email"
             placeholder="you@example.com"
@@ -51,13 +39,22 @@ export default function AuthPage() {
           />
         </div>
 
+        <div className="form-col" style={{ marginBottom: 14 }}>
+          <label>Password</label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+          />
+        </div>
+
         {error && <div className="auth-error">{error}</div>}
 
         <button className="btn-primary btn-submit" onClick={handleLogin} disabled={loading}>
-          {loading ? 'Sending…' : 'Send magic link ✉'}
+          {loading ? 'Signing in…' : 'Sign in'}
         </button>
-
-        <p className="auth-note">No password needed. We'll email you a sign-in link.</p>
       </div>
     </div>
   );
